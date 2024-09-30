@@ -11,7 +11,7 @@ import (
 
 const appVersion = "1.0.0"
 
-// befire encode v5 merge
+// after encode v5 merge
 type serverConfig struct {
 	port        int
 	environment string
