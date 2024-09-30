@@ -14,7 +14,7 @@ func (a *applicationDependencies) healthcheckHandler(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(jsResponse))*/
 
-	data := map[string]string{
+	data := envelope{
 		"status":     "avalibale",
 		"enviroment": a.config.environment,
 		"version":    appVersion,
