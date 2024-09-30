@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// begore or after merge encode v3
 const appVersion = "1.0.0"
 
 type serverConfig struct {
