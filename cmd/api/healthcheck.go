@@ -15,15 +15,18 @@ func (a *applicationDependencies) healthcheckHandler(w http.ResponseWriter, r *h
 	w.Write([]byte(jsResponse))*/
 
 	data := envelope{
-		"status":     "avalibale",
-		"enviroment": a.config.environment,
-		"version":    appVersion,
+		"status": "avalibale",
+		"system_info": map[string]string{
+			"enviroment": a.config.environment,
+			"version":    appVersion,
+		},
 	}
 
 	//jsResponse, err := json.Marshal(data)
 	err := a.writeJSON(w, http.StatusOK, data, nil)
 	if err != nil {
-		a.logger.Error(err.Error())
+		//a.logger.Error(err.Error())
+		a.serverErrorResponse(w, r, err)
 		http.Error(w, "The server encounted a problem and could not process your request", http.StatusInternalServerError)
 		return
 	}
