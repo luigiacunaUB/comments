@@ -14,6 +14,7 @@ func (a *applicationDependencies) healthcheckHandler(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(jsResponse))*/
 
+	//panic("Apples & Oranges")
 	data := envelope{
 		"status": "avalibale",
 		"system_info": map[string]string{
