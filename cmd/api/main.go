@@ -11,7 +11,7 @@ import (
 
 const appVersion = "1.0.0"
 
-// after encode v5 merge
+// after parse v2
 type serverConfig struct {
 	port        int
 	environment string
