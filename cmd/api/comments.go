@@ -37,12 +37,32 @@ func (a *applicationDependencies) createCommentHandler(w http.ResponseWriter, r 
 	v := validator.New()
 
 	//Do the Validation
-	data.ValidateComment(v,comment)
-	if !v.IsEmpty(){
-		a.failedValidationResponse(w,r,v.Errors)
+	data.ValidateComment(v, comment)
+	if !v.IsEmpty() {
+		a.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	//Add the comment to the database table
+	err = a.commentModel.Insert(comment)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/v1/comments/%d", comment.ID))
+
+	//Send a JSON response with 201 (new resource created) status code
+	data := envelope{
+		"comment": comment,
+	}
+	err = a.writeJSON(w, http.StatusCreated, data, headers)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
 		return
 	}
 
 	// for now display the result
-	fmt.Fprintf(w, "%+v\n", incomingData)
+	//fmt.Fprintf(w, "%+v\n", incomingData)
 }
