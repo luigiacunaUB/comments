@@ -12,7 +12,7 @@ func (a *applicationDependencies) routes() http.Handler {
 	//handle 404
 	router.NotFound = http.HandlerFunc(a.notFoundResponse)
 	//handle 405s
-	router.NotFound = http.HandlerFunc(a.methodNotAllowedResponse)
+	router.MethodNotAllowed = http.HandlerFunc(a.methodNotAllowedResponse)
 	//setup routes
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", a.healthcheckHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/comments", a.createCommentHandler)

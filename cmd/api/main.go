@@ -34,7 +34,6 @@ type applicationDependencies struct {
 
 func main() {
 	var settings serverConfig
-
 	flag.IntVar(&settings.port, "port", 4000, "Server port")
 	flag.StringVar(&settings.environment, "env", "development",
 		"Environment(development|staging|production)")
