@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/luigiacunaUB/comments/internal/validator"
@@ -52,4 +53,35 @@ func ValidateComment(v *validator.Validator, comment *Comment) {
 	v.Check(len(comment.Content) <= 100, "content", "must not be more than 100 bytes long")
 	//Check if the Author field is empty
 	v.Check(len(comment.Author) <= 25, "content", "must not be more than 25 bytes long")
+}
+
+func (c CommentModel)Get(id int64) (*Comment,error){
+	//check if the id is valid
+	if id < 1{
+		return nil, ErrRecordNotFound
+	}
+	//the SQL query to be exceuted against the database table
+	query := `
+		SELECT id, created_at,content,author,version
+		FROM comments
+		WHERE id =$1
+		`
+	//delcare a variable of type Comment to store the returned comment
+	var comment Comment
+	//Set a 3-Second context/timer
+	ctx,cancel := context.WithTimeout(context.Background(),3 * time.Second)
+	defer cancel ()
+
+	err := c.DB.QueryRowContext(ctx, query, id).Scan(&comment.ID,&comment.CreatedAt,&comment.Content,&comment.Author,&comment.Version)
+	//check for which type of error
+	if err != nil{
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+			
+		}
+	}
+	return &comment, nil
 }
