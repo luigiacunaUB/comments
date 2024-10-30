@@ -68,58 +68,58 @@ func (a *applicationDependencies) createCommentHandler(w http.ResponseWriter, r 
 	//fmt.Fprintf(w, "%+v\n", incomingData)
 }
 
-func (a *applicationDependencies)displayCommentHandler(w http.ResponseWriter, r *http.Request){
+func (a *applicationDependencies) displayCommentHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the id from the URL /v1/comments/:id so that we
-	// can use it to query teh comments table. We will 
+	// can use it to query teh comments table. We will
 	// implement the readIDParam() function later
 	id, err := a.readIDParam(r)
 	if err != nil {
 		a.notFoundResponse(w, r)
-		return 
+		return
 	}
 
 	// Call Get() to retrieve the comment with the specified id
 	comment, err := a.commentModel.Get(id)
 	if err != nil {
 		switch {
-			case errors.Is(err, data.ErrRecordNotFound):
-			   a.notFoundResponse(w, r)
-			default:
-			   a.serverErrorResponse(w, r, err)
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
 		}
-		return 
+		return
 	}
 
 	// display the comment
-    data := envelope {
+	data := envelope{
 		"comment": comment,
 	}
 	err = a.writeJSON(w, http.StatusOK, data, nil)
 	if err != nil {
-	a.serverErrorResponse(w, r, err)
-	return 
+		a.serverErrorResponse(w, r, err)
+		return
 	}
 }
 
-func (a *applicationDependencies)updateCommentHandler(w http.ResponseWriter,r *http.Request) {
+func (a *applicationDependencies) updateCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the id from the URL
 	id, err := a.readIDParam(r)
 	if err != nil {
 		a.notFoundResponse(w, r)
-		return 
+		return
 	}
 
 	// Call Get() to retrieve the comment with the specified id
 	comment, err := a.commentModel.Get(id)
 	if err != nil {
 		switch {
-			case errors.Is(err, data.ErrRecordNotFound):
-			   a.notFoundResponse(w, r)
-			default:
-			   a.serverErrorResponse(w, r, err)
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
 		}
-		return 
+		return
 	}
 
 	// Use our temporary incomingData struct to hold the data
@@ -127,18 +127,18 @@ func (a *applicationDependencies)updateCommentHandler(w http.ResponseWriter,r *h
 	// between the client leaving a field empty intentionally
 	// and the field not needing to be updated
 	var incomingData struct {
-	Content  *string  `json:"content"`
-	Author   *string  `json:"author"`
+		Content *string `json:"content"`
+		Author  *string `json:"author"`
 	}
-	
+
 	// perform the decoding
 	err = a.readJSON(w, r, &incomingData)
 	if err != nil {
 		a.badRequestResponse(w, r, err)
 		return
 	}
- 	// We need to now check the fields to see which ones need updating
- 	// if incomingData.Content is nil, no update was provided
+	// We need to now check the fields to see which ones need updating
+	// if incomingData.Content is nil, no update was provided
 	if incomingData.Content != nil {
 		comment.Content = *incomingData.Content
 	}
@@ -147,32 +147,56 @@ func (a *applicationDependencies)updateCommentHandler(w http.ResponseWriter,r *h
 	if incomingData.Author != nil {
 		comment.Author = *incomingData.Author
 	}
- 
-	 // Before we write the updates to the DB let's validate
+
+	// Before we write the updates to the DB let's validate
 	v := validator.New()
 	data.ValidateComment(v, comment)
 	if !v.IsEmpty() {
-		 a.failedValidationResponse(w, r, v.Errors)  
-		 return
+		a.failedValidationResponse(w, r, v.Errors)
+		return
 	}
 
 	// perform the update
-    err = a.commentModel.Update(comment)
-    if err != nil {
-       a.serverErrorResponse(w, r, err)
-       return 
-   }
-   data := envelope {
-                "comment": comment,
-          }
-   err = a.writeJSON(w, http.StatusOK, data, nil)
-   if err != nil {
-       a.serverErrorResponse(w, r, err)
-       return 
-   }
-
- 
- 
+	err = a.commentModel.Update(comment)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
+	data := envelope{
+		"comment": comment,
+	}
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+		return
+	}
 }
 
+func (a *applicationDependencies) deleteCommentHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := a.readIDParam(r)
+	if err != nil {
+		a.notFoundResponse(w, r)
+		return
+	}
 
+	err = a.commentModel.Delete(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			a.notFoundResponse(w, r)
+		default:
+			a.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// display the comment
+	data := envelope{
+		"message": "comment successfully deleted",
+	}
+	err = a.writeJSON(w, http.StatusOK, data, nil)
+	if err != nil {
+		a.serverErrorResponse(w, r, err)
+	}
+}
